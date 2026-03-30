@@ -1,0 +1,9 @@
+bin/
+obj/
+.env
+appsettings.Development.json
+Secureappsettings.txt
+keys/
+tempkey.jwk
+*.user
+.vs/

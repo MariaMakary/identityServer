@@ -1,0 +1,60 @@
+# Production docker-compose — place this at /opt/identityserver/ on the server.
+# Create a .env file alongside it with the variables listed at the bottom.
+
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: identitydb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d identitydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  identity-server:
+    image: DOCKERHUB_USERNAME/identity-server:latest   # replace DOCKERHUB_USERNAME
+    restart: always
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=identitydb;Username=admin;Password=${POSTGRES_PASSWORD}"
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      Serilog__SeqUrl: "http://seq:5341"
+    ports:
+      - "127.0.0.1:5166:5166"   # localhost only — nginx proxies externally
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  seq:
+    image: datalust/seq:latest
+    restart: always
+    environment:
+      ACCEPT_EULA: "Y"
+      SEQ_FIRSTRUN_ADMINPASSWORD: ${SEQ_ADMIN_PASSWORD}
+    ports:
+      - "127.0.0.1:8081:80"     # localhost only — expose via nginx if needed
+    networks:
+      - app-network
+
+volumes:
+  pgdata:
+
+networks:
+  app-network:
+
+# ── .env file (create at /opt/identityserver/.env) ─────────────────────────
+# POSTGRES_PASSWORD=a-strong-password
+# SEQ_ADMIN_PASSWORD=a-strong-password
+# AWS_ACCESS_KEY_ID=your-key-id
+# AWS_SECRET_ACCESS_KEY=your-secret-key
