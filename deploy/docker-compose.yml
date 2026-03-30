@@ -20,7 +20,7 @@ services:
       - app-network
 
   identity-server:
-    image: DOCKERHUB_USERNAME/identity-server:latest   # replace DOCKERHUB_USERNAME
+    image: ghcr.io/YOUR_GITHUB_USERNAME/identity-server:latest   # replace YOUR_GITHUB_USERNAME
     restart: always
     environment:
       ASPNETCORE_ENVIRONMENT: Production
