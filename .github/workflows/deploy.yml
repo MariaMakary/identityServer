@@ -44,6 +44,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           script: |
+            echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u mariamakary --password-stdin
             cd /opt/identityserver
             docker compose pull
             docker compose up -d
